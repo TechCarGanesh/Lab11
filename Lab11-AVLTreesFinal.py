@@ -67,6 +67,7 @@ class AVLTree:
         return self.insert_recursive(node, word)
     # Insert a word and balance the tree
     def insert_recursive(self, root, word):
+        # If the root is None, insert the new node as a leaf.
         if root is None:
             root = AVLNode(word)
             return root
@@ -87,6 +88,8 @@ class AVLTree:
             return root
         return self.balance_avl_tree(root, word)
 
+    # balance_avl_tree function balances the avl tree by performing left-rotation
+    # when the tree is right heavy or right-rotation when the tree is left heavy.
     def balance_avl_tree(self, root, word):
         # Update height
         root.height = 1 + max(self.get_height(root.left), self.get_height(root.right))
@@ -95,10 +98,10 @@ class AVLTree:
         balance = self.get_balance(root)
 
         # Balance the tree using rotations
-        # Case 1: Left-left rotation
+        # Case 1: Left rotation
         if balance > 1 and word < root.left.word:
             return self.right_rotate(root)
-        # Case 2: Right-right rotation
+        # Case 2: Right rotation
         if balance < -1 and word > root.right.word:
             return self.left_rotate(root)
         # Case 3: Left-right rotation
@@ -117,30 +120,33 @@ class AVLTree:
         # Return root.
         return root
 
+    # Deletes the node with the word in the tree.
     def delete(self, word):
         self.delete_recursive(self.root, word)
 
-    # BSTDeleteRecursive function
+    # Recursively deleting a node in the tree and balances the AVL tree.
     def delete_recursive(self, root, word):
         # Base case: If the tree is empty, return root
         if root is None:
             return root
 
-        # If the careLevel to be deleted is smaller than the root's careLevel, it lies in left subtree
+        # If the word to be deleted is smaller than the root's word, it lies in left subtree
         if word < root.word:
             root.left = self.delete_recursive(root.left, word)
 
-        # If the careLevel to be deleted is larger than the root's careLevel, it lies in right subtree
+        # If the word to be deleted is larger than the root's word, it lies in right subtree
         elif word > root.word:
             root.right = self.delete_recursive(root.right, word)
 
-        # If the careLevel is the same as root's careLevel, then this is the node to be deleted
+        # If the word is the same as root's word, then this is the node to be deleted
         else:
             # Case 1: Node has no children (leaf node)
+            # Delete the node.
             if root.left is None and root.right is None:
                 return None
 
             # Case 2: Node has only one child
+            # Delete the node and return the left or right child.
             elif root.left is None:
                 return root.right
             elif root.right is None:
@@ -156,6 +162,7 @@ class AVLTree:
 
                 # Delete the inorder successor
                 root.right = self.delete_recursive(root.right, min_node.word)
+        # Return the balanced AVL tree.
         return self.balance_avl_tree(root, word)
 
     # _min_value_node function
@@ -170,6 +177,8 @@ class AVLTree:
         self.root = self.delete(word)
 
     # Search for a word in the tree
+    # Search algorithm implements preorder traversal.
+    # Time complexity is O(log n).
     def search(self, root, word):
         # If the word is not in the tree, return false.
         if not root:
@@ -199,6 +208,10 @@ class AVLTree:
         return self.get_height(node.left) - self.get_height(node.right) if node else 0
 
     # Perform a left rotation
+    # Algorithm:
+    # Step 1: Make the right node root the new root.
+    # Step 2: The currNode will become newRoot's left subtree.
+    # Step 3: newRoot's left subtree will become the right subtree of currNode.
     def left_rotate(self, currNode):
         # Assigning the right child of currNode to newRoot.
         newRoot = currNode.right
@@ -219,6 +232,10 @@ class AVLTree:
         return newRoot
 
     # Perform a right rotation
+    # Algorithm:
+    # Step 1: newRoot is left of the currNode.
+    # Step 2: currNode becomes the right subtree of the newRoot.
+    # Step 3: The right subtree of the newRoot will be currNode of the left subtree.
     def right_rotate(self, currNode):
         # Assigning the left child of currNode to newRoot.
         newRoot = currNode.left
@@ -250,16 +267,6 @@ class AVLTree:
             # Visit the right child next.
             print("Inorder right:", root.word)
             self.inorder_traversal(root.right)
-
-# process_document function.
-def process_document(text):
-    # Translator removes punctuation
-    translator = str.maketrans('', '', string.punctuation)
-    # Makes the letters lowercase and splits it.
-    words = text.translate(translator).lower().split()
-    # Return the words.
-    return words
-
 
 # load_dictionary function loads dictionary words into AVL tree
 def load_dictionary(file_path):
@@ -295,6 +302,8 @@ def load_dictionary(file_path):
 
 
 # Check spelling of words in a document
+# If the word is not found, the word that is
+# not found in the dictionary ends up in the misspelled list
 def spell_check(word, root, avl_tree):
     return avl_tree.search(root, word)
 
@@ -324,6 +333,7 @@ def main():
     print("Files found. Proceeding with load and spell check...\n")
 
     # Load dictionary into AVL Tree
+    # Tests the insert and balanced function.
     avl_tree, root = load_dictionary(dictionary_file)
 
     # Print the tree (sorted) with balance factors
@@ -335,6 +345,7 @@ def main():
     else:
         print("AVL Tree is empty!")
 
+    # Test delete function
     avl_tree.delete("cow")
     # Make a list of spell-check words.
     with open("document2.txt", "r") as doc_file:
@@ -382,9 +393,9 @@ def main():
 if __name__ == "__main__":
     main()
 # Result:
-# C:\AdvancedPython\ADVANCEDPYTHON-2025\.venv\Scripts\python.exe C:\AdvancedPython\ADVANCEDPYTHON-2025\Lab11-AVLTrees.py 
+# C:\AdvancedPython\ADVANCEDPYTHON-2025\.venv\Scripts\python.exe C:\AdvancedPython\ADVANCEDPYTHON-2025\Lab11-AVLTrees.py
 # Files found. Proceeding with load and spell check...
-# 
+#
 # Root height is 1
 # Height of left subtree is -1
 # Height of right subtree is 0
@@ -403,7 +414,7 @@ if __name__ == "__main__":
 # Root height is 2
 # Height of left subtree is 1
 # Height of right subtree is 1
-# 
+#
 # === In-order Traversal of AVL Tree (with balance): ===
 # Inorder left: elephant
 # Inorder left: cow
@@ -422,7 +433,7 @@ if __name__ == "__main__":
 # Inorder right: monkey
 # Performing spell check. ['elephant', 'big', 'than', 'monkey', 'while', 'limur', 'smaller', 'than', 'caw']
 # Misspelled words are:  {'caw', 'than', 'big', 'smaller', 'limur', 'while'}
-# 
+#
 # === Misspelled Words Found: ===
 # big
 # caw
@@ -452,5 +463,5 @@ if __name__ == "__main__":
 # Enter 3 to exit.
 # Please select an option:3
 # Goodbye!
-# 
+#
 # Process finished with exit code 0
