@@ -33,180 +33,296 @@
 #
 # Implement functionality to show all misspelled words in the final document.
 # Print your tree with inorder traversal, include balance at each node along with the data stored there
+# Name: Ganesh Kumar
+# Date: 04/17/2025
+# Instructor: Professor Andres Calle
+# Used to remove punctuation
+import string
+# To check file existence
+import os
+
+# Setting vertical to 1.
+VERTICAL = 1
+# Setting horizontal to 0.
+HORIZONTAL = 0
+# Setting maximum height to 16.
+MAX_HEIGHT = 16
+
+# AVLNode Class
 class AVLNode:
     def __init__(self, word):
+        # Word stored in the node
         self.word = word
+        # Left child
         self.left = None
+        # Right child
         self.right = None
-        self.height = 1
+        # Height of the node (starts at 0)
+        self.height = 0
 
+# AVLTree Class
 class AVLTree:
     def __init__(self):
         self.root = None
+        print("AVL Tree const")
 
-    # Insert with normalization
-    def insert(self, root, word):
-        word = word.strip().lower()
+    def insert(self, node, word):
+        return self.insert_recursive(node, word)
+    # Insert a word and balance the tree
+    def insert_recursive(self, root, word):
+        print("I am in the insert function.")
+        if root is None:
+            root = AVLNode(word)
+            return root
+        # If the current node is none, then return the word.
         if not root:
+            print("! Root", word)
             return AVLNode(word)
-
-        if word < root.word:
-            root.left = self.insert(root.left, word)
+        # If the word is smaller,
+        # the function proceeds to insert the word in the left subtree of the current node
+        elif word < root.word:
+            print("Left subtree", word)
+            root.left = self.insert_recursive(root.left, word)
+        # If the word is greater,
+        # the function recursively calls self.insert_recursive(root.right, word)
+        # to insert the word into the right subtree.
         elif word > root.word:
-            root.right = self.insert(root.right, word)
+            print("Right subtree", word)
+            root.right = self.insert_recursive(root.right, word)
+        # If it is a duplicate word, ignore and return the root.
         else:
-            return root  # duplicate
+            print("Return the root.")
+            return root
 
+        # Update height
         root.height = 1 + max(self.get_height(root.left), self.get_height(root.right))
+        print("Height is", root.height)
+
+        # Calculate balance factor
         balance = self.get_balance(root)
 
-        # Left-Left
+        # Balance the tree using rotations
+        # Case 1: Left-left rotation
         if balance > 1 and word < root.left.word:
+            print("Left-left rotation")
             return self.right_rotate(root)
-
-        # Right-Right
+        # Case 2: Right-right rotation
         if balance < -1 and word > root.right.word:
+            print("Right-right rotation")
             return self.left_rotate(root)
-
-        # Left-Right
+        # Case 3: Left-right rotation
         if balance > 1 and word > root.left.word:
+            print("Left-right rotation")
             root.left = self.left_rotate(root.left)
             return self.right_rotate(root)
-
-        # Right-Left
+        # Case 4: Right-left rotation
         if balance < -1 and word < root.right.word:
+            print("Right-left rotation")
             root.right = self.right_rotate(root.right)
             return self.left_rotate(root)
 
+        # Return root.
         return root
 
-    def left_rotate(self, z):
-        y = z.right
-        T2 = y.left
-        y.left = z
-        z.right = T2
-        z.height = 1 + max(self.get_height(z.left), self.get_height(z.right))
-        y.height = 1 + max(self.get_height(y.left), self.get_height(y.right))
-        return y
-
-    def right_rotate(self, z):
-        y = z.left
-        T3 = y.right
-        y.right = z
-        z.left = T3
-        z.height = 1 + max(self.get_height(z.left), self.get_height(z.right))
-        y.height = 1 + max(self.get_height(y.left), self.get_height(y.right))
-        return y
-
-    def get_height(self, node):
-        if not node:
-            return 0
-        return node.height
-
-    def get_balance(self, node):
-        if not node:
-            return 0
-        return self.get_height(node.left) - self.get_height(node.right)
-
-    def contains(self, root, word):
-        word = word.strip().lower()
+    # Search for a word in the tree
+    def search(self, root, word):
+        # If the word is not in the tree, return false.
         if not root:
             return False
+        # If the word is in the tree, return true.
         if word == root.word:
             return True
+        # If the word being searched for is
+        # smaller than the word stored in the current node (root.word),
+        # the word is in the left subtree of the current node.
         elif word < root.word:
-            return self.contains(root.left, word)
+            return self.search(root.left, word)
+        # If the word being searched for is
+        # greater than the word stored in the current node (root.word),
+        # the word is in the right subtree of the current node.
         else:
-            return self.contains(root.right, word)
+            return self.search(root.right, word)
 
-    def in_order_traversal(self, node):
-        if node:
-            self.in_order_traversal(node.left)
-            print(f"{node.word} (Balance: {self.get_balance(node)})")
-            self.in_order_traversal(node.right)
+    # Get height of a node
+    def get_height(self, node):
+        if not node:
+            return -1
+        return node.height
 
-# === Spell Check Function ===
-def spell_check(word, avl_tree, root):
-    return avl_tree.contains(root, word)
+    # Get balance factor
+    def get_balance(self, node):
+        return self.get_height(node.left) - self.get_height(node.right) if node else 0
 
-# === MAIN SCRIPT ===
-if __name__ == "__main__":
-    avl = AVLTree()
+    # Perform a left rotation
+    def left_rotate(self, z):
+        # Assigning the right child of z to y.
+        y = z.right
+        # Assigning the left child of y to T2.
+        T2 = y.left
+
+        # Making current node of z the left child of y.
+        y.left = z
+        # Making current node of T2 the right child of z.
+        z.right = T2
+
+        # Calculating the height of z.
+        z.height = 1 + max(self.get_height(z.left), self.get_height(z.right))
+        # Calculating the height of y.
+        y.height = 1 + max(self.get_height(y.left), self.get_height(y.right))
+
+        # Return y
+        return y
+
+    # Perform a right rotation
+    def right_rotate(self, z):
+        # Assigning the left child of z to y.
+        y = z.left
+        # Assigning the right child of y to T3.
+        T3 = y.right
+        # Making current node of z the right child of y.
+        y.right = z
+        # Making current node of T3 the left child of z.
+        z.left = T3
+
+        # Calculating the height of z.
+        z.height = 1 + max(self.get_height(z.left), self.get_height(z.right))
+        # Calculating the height of y.
+        y.height = 1 + max(self.get_height(y.left), self.get_height(y.right))
+
+        # Return y
+        return y
+
+    # In-order traversal prints nodes in sorted order with balance
+    def inorder_traversal(self, root):
+        if root:
+            # Visit the left child first.
+            print("Inorder left:", root.word)
+            self.inorder_traversal(root.left)
+            # Calculating the balance factor.
+            balance = self.get_balance(root)
+            # Printing the word stored in the current node along with balance factor.
+            print(f"{root.word} (Balance: {balance})")
+            # Visit the right child next.
+            print("Inorder right:", root.word)
+            self.inorder_traversal(root.right)
+
+# process_document function.
+def process_document(text):
+    # Translator removes punctuation
+    translator = str.maketrans('', '', string.punctuation)
+    # Makes the letters lowercase and splits it.
+    words = text.translate(translator).lower().split()
+    # Return the words.
+    return words
+
+
+# load_dictionary function loads dictionary words into AVL tree
+def load_dictionary(file_path):
+    # Construct an AVL tree object.
+    tree = AVLTree()
+    # Dictionary AVL Tree
+    print("Load dictionary AVL Tree", file_path)
+    # Setting the root to none.
     root = None
 
-    # Load dictionary
-    with open("dictionary.txt", "r") as file:
-        for line in file:
-            clean_word = line.strip().lower()
-            root = avl.insert(root, clean_word)
+    # If file does not exist, print that the file is not found.
+    if not os.path.exists(file_path):
+        # File
+        print(f"File '{file_path}' not found!")
+        return tree, root
 
-    print("\n=== In-order Traversal of AVL Tree (with balance factors): ===")
-    avl.in_order_traversal(root)
+    # Opening the file in reading mode.
+    file_path = "C:\\AdvancedPython\\ADVANCEDPYTHON-2025\\dictionary2.txt"
+    # with open(file_path, 'r') as f:
+    infile = open(file_path, "r")
+    # Reads the entire contents of the document into a single string.
+    content = infile.readline()
+    # Debug content
+    print(f"\nRaw contents of '{file_path}':\n{content}\n")
+    # Reset pointer to beginning of file
+    infile.seek(0)
+    for line in infile:
+        # Strip the line
+        print("Line is", line.strip())
+        # Storing a lowercase word in the AVL tree.
+        word = line.strip().lower()
+        # Printing the word in the dictionary.
+        print("Load dictionary", word)
+        if word:
+            # Insert the word in the AVL tree.
+            root = tree.insert(root, word)
+    # Returning tree and root.
+    return tree, root
 
-    # Sample words to spell-check
-    input_words = ["a", "convertible", "couppe", "driving", "i", "love", "more", "sports", "than"]
 
-    print("\n=== Spell Check Results: ===")
-    for word in input_words:
-        if not spell_check(word, avl, root):
-            print(f"- {word}")
+# Check spelling of words in a document
+def spell_check(document_path, avl_tree, root):
+    # Initializes misspelled with set.
+    misspelled = set()
 
-# Add a loop to ask the user to add new items into dictionary.
-    # Ask the user to enter a word to spell-check or exit.
-    while True:
-        print("Enter 1 to add a new word into dictionary.")
-        print("Enter 2 to spell-check.")
-        print("Enter 3 to exit.")
-        choice = int(input("Please select an option:"))
-        if choice == 3:
-            print("Goodbye!")
-            break
-        elif choice == 1:
-            word = str(input("Please enter a word into the dictionary."))
-            root = avl.insert(root, word)
-        elif choice == 2:
-            word = str(input("Please enter a word to spell-check."))
-            if not spell_check(word, avl, root):
-                print("Misspelled word = ", word)
-# Result:
-# C:\AdvancedPython\ADVANCEDPYTHON-2025\.venv\Scripts\python.exe C:\AdvancedPython\ADVANCEDPYTHON-2025\Lab11-AVLTreesTweakedAgain.py
-#
-# === In-order Traversal of AVL Tree (with balance factors): ===
-# a (Balance: -1)
-# buggy (Balance: 0)
-# bus (Balance: -1)
-# convertible (Balance: 0)
-# coupe (Balance: 0)
-# dirtbike (Balance: 0)
-# driving (Balance: 0)
-# electric (Balance: 0)
-# hot-rod (Balance: 0)
-# hybrid (Balance: 0)
-# i (Balance: 0)
-# like (Balance: 0)
-# love (Balance: 0)
-# minivan (Balance: 0)
-# more (Balance: 0)
-# racecar (Balance: 0)
-# sailboat (Balance: 0)
-# sedan (Balance: 0)
-# sports (Balance: 0)
-# suv (Balance: 0)
-# than (Balance: -1)
-# truck (Balance: -1)
-# wagon (Balance: 0)
-#
-# === Spell Check Results: ===
-# - couppe
-# Enter 1 to add a new word into dictionary.
-# Enter 2 to spell-check.
-# Enter 3 to exit.
-# Please select an option:1
-# Please enter a word into the dictionary.W16
-# Enter 1 to add a new word into dictionary.
-# Enter 2 to spell-check.
-# Enter 3 to exit.
-# Please select an option:3
-# Goodbye!
-#
-# Process finished with exit code 0
+    # If file does not exist, print the file is not found.
+    if not os.path.exists(document_path):
+        print(f"Document file '{document_path}' not found!")
+        return misspelled
+
+    # Opens the file in reading mode.
+    with open(document_path, 'r') as f:
+        # Reads the entire contents of the document into a single string.
+        content = f.read()
+        # Calling process_document function.
+        words = process_document(content)
+        for word in words:
+            # Checks whether the word exists in the
+            # AVL tree dictionary using the search method.
+            if not avl_tree.search(root, word):
+                # Adds the misspelled word to the misspelled set.
+                misspelled.add(word)
+    # Returns misspelled word.
+    return misspelled
+
+# Main function.
+def main():
+    # Input file paths (make sure these exist!)
+    # Creating dictionary file.
+    dictionary_file = "dictionary2.txt"
+    # Creating document file.
+    document_file = "document2.txt"
+
+    # If dictionary file does not exist, print that the dictionary file is not found and return.
+    if not os.path.exists(dictionary_file):
+        print(f"Dictionary file not found: {dictionary_file}")
+        return
+    # If document file does not exist, print that the dictionary file is not found and return.
+    if not os.path.exists(document_file):
+        print(f"Document file not found: {document_file}")
+        return
+
+    print("Files found. Proceeding with load and spell check...\n")
+
+    # Load dictionary into AVL Tree
+    avl_tree, root = load_dictionary(dictionary_file)
+
+    # Print the tree (sorted) with balance factors
+    print("\n=== In-order Traversal of AVL Tree (with balance): ===")
+    # If there is root, perform inorder traversal on the AVL tree.
+    if root:
+        avl_tree.inorder_traversal(root)
+    # Otherwise, print that the AVL tree is empty.
+    else:
+        print("AVL Tree is empty!")
+
+    # Check for misspelled words
+    misspelled_words = spell_check(document_file, avl_tree, root)
+
+    print("\n=== Misspelled Words Found: ===")
+    # If there are misspelled words, print the misspelled word.
+    if misspelled_words:
+        for word in sorted(misspelled_words):
+            print(f"{word}")
+    # Otherwise, print that there are no misspelled words.
+    else:
+        print("No misspelled words found!")
+
+# Calling main function.
+if __name__ == "__main__":
+    main()
