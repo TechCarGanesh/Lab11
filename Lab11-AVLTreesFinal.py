@@ -62,39 +62,34 @@ class AVLNode:
 class AVLTree:
     def __init__(self):
         self.root = None
-        print("AVL Tree const")
 
     def insert(self, node, word):
         return self.insert_recursive(node, word)
     # Insert a word and balance the tree
     def insert_recursive(self, root, word):
-        print("I am in the insert function.")
         if root is None:
             root = AVLNode(word)
             return root
         # If the current node is none, then return the word.
         if not root:
-            print("! Root", word)
             return AVLNode(word)
         # If the word is smaller,
         # the function proceeds to insert the word in the left subtree of the current node
         elif word < root.word:
-            print("Left subtree", word)
             root.left = self.insert_recursive(root.left, word)
         # If the word is greater,
         # the function recursively calls self.insert_recursive(root.right, word)
         # to insert the word into the right subtree.
         elif word > root.word:
-            print("Right subtree", word)
             root.right = self.insert_recursive(root.right, word)
         # If it is a duplicate word, ignore and return the root.
         else:
-            print("Return the root.")
             return root
+        return self.balance_avl_tree(root, word)
 
+    def balance_avl_tree(self, root, word):
         # Update height
         root.height = 1 + max(self.get_height(root.left), self.get_height(root.right))
-        print("Height is", root.height)
 
         # Calculate balance factor
         balance = self.get_balance(root)
@@ -102,25 +97,77 @@ class AVLTree:
         # Balance the tree using rotations
         # Case 1: Left-left rotation
         if balance > 1 and word < root.left.word:
-            print("Left-left rotation")
             return self.right_rotate(root)
         # Case 2: Right-right rotation
         if balance < -1 and word > root.right.word:
-            print("Right-right rotation")
             return self.left_rotate(root)
         # Case 3: Left-right rotation
         if balance > 1 and word > root.left.word:
-            print("Left-right rotation")
             root.left = self.left_rotate(root.left)
             return self.right_rotate(root)
         # Case 4: Right-left rotation
         if balance < -1 and word < root.right.word:
-            print("Right-left rotation")
             root.right = self.right_rotate(root.right)
             return self.left_rotate(root)
 
+        print("Root height is", root.height)
+        print("Height of left subtree is", self.get_height(root.left))
+        print("Height of right subtree is", self.get_height(root.right))
+
         # Return root.
         return root
+
+    def delete(self, word):
+        self.delete_recursive(self.root, word)
+
+    # BSTDeleteRecursive function
+    def delete_recursive(self, root, word):
+        # Base case: If the tree is empty, return root
+        if root is None:
+            return root
+
+        # If the careLevel to be deleted is smaller than the root's careLevel, it lies in left subtree
+        if word < root.word:
+            root.left = self.delete_recursive(root.left, word)
+
+        # If the careLevel to be deleted is larger than the root's careLevel, it lies in right subtree
+        elif word > root.word:
+            root.right = self.delete_recursive(root.right, word)
+
+        # If the careLevel is the same as root's careLevel, then this is the node to be deleted
+        else:
+            # Case 1: Node has no children (leaf node)
+            if root.left is None and root.right is None:
+                return None
+
+            # Case 2: Node has only one child
+            elif root.left is None:
+                return root.right
+            elif root.right is None:
+                return root.left
+
+            # Case 3: Node has two children
+            else:
+                # Get the inorder successor (smallest in the right subtree)
+                min_node = self._min_value_node(root.right)
+
+                # Copy the inorder successor's content to this node
+                root.word = min_node.word
+
+                # Delete the inorder successor
+                root.right = self.delete_recursive(root.right, min_node.word)
+        return self.balance_avl_tree(root, word)
+
+    # _min_value_node function
+    def _min_value_node(self, node):
+        current = node
+        while current.left is not None:
+            current = current.left
+        return current
+
+    # Optional: A method to call delete on the root of the tree
+    def delete_root(self, word):
+        self.root = self.delete(word)
 
     # Search for a word in the tree
     def search(self, root, word):
@@ -219,7 +266,6 @@ def load_dictionary(file_path):
     # Construct an AVL tree object.
     tree = AVLTree()
     # Dictionary AVL Tree
-    print("Load dictionary AVL Tree", file_path)
     # Setting the root to none.
     root = None
 
@@ -236,16 +282,11 @@ def load_dictionary(file_path):
     # Reads the entire contents of the document into a single string.
     content = infile.readline()
     # Debug content
-    print(f"\nRaw contents of '{file_path}':\n{content}\n")
     # Reset pointer to beginning of file
     infile.seek(0)
     for line in infile:
-        # Strip the line
-        print("Line is", line.strip())
         # Storing a lowercase word in the AVL tree.
         word = line.strip().lower()
-        # Printing the word in the dictionary.
-        print("Load dictionary", word)
         if word:
             # Insert the word in the AVL tree.
             root = tree.insert(root, word)
@@ -294,6 +335,7 @@ def main():
     else:
         print("AVL Tree is empty!")
 
+    avl_tree.delete("cow")
     # Make a list of spell-check words.
     with open("document2.txt", "r") as doc_file:
         for line in doc_file:
@@ -339,50 +381,29 @@ def main():
 # Calling main function.
 if __name__ == "__main__":
     main()
-# C:\AdvancedPython\ADVANCEDPYTHON-2025\.venv\Scripts\python.exe C:\AdvancedPython\ADVANCEDPYTHON-2025\Lab11-AVLTrees.py
+# Result:
+# C:\AdvancedPython\ADVANCEDPYTHON-2025\.venv\Scripts\python.exe C:\AdvancedPython\ADVANCEDPYTHON-2025\Lab11-AVLTrees.py 
 # Files found. Proceeding with load and spell check...
-#
-# AVL Tree const
-# Load dictionary AVL Tree dictionary2.txt
-#
-# Raw contents of 'C:\AdvancedPython\ADVANCEDPYTHON-2025\dictionary2.txt':
-# elephant
-#
-#
-# Line is elephant
-# Load dictionary elephant
-# I am in the insert function.
-# Line is monkey
-# Load dictionary monkey
-# I am in the insert function.
-# Right subtree monkey
-# I am in the insert function.
-# Height is 1
-# Line is cow
-# Load dictionary cow
-# I am in the insert function.
-# Left subtree cow
-# I am in the insert function.
-# Height is 1
-# Line is dog
-# Load dictionary dog
-# I am in the insert function.
-# Left subtree dog
-# I am in the insert function.
-# Right subtree dog
-# I am in the insert function.
-# Height is 1
-# Height is 2
-# Line is lemur
-# Load dictionary lemur
-# I am in the insert function.
-# Right subtree lemur
-# I am in the insert function.
-# Left subtree lemur
-# I am in the insert function.
-# Height is 1
-# Height is 2
-#
+# 
+# Root height is 1
+# Height of left subtree is -1
+# Height of right subtree is 0
+# Root height is 1
+# Height of left subtree is 0
+# Height of right subtree is 0
+# Root height is 1
+# Height of left subtree is -1
+# Height of right subtree is 0
+# Root height is 2
+# Height of left subtree is 1
+# Height of right subtree is 0
+# Root height is 1
+# Height of left subtree is 0
+# Height of right subtree is -1
+# Root height is 2
+# Height of left subtree is 1
+# Height of right subtree is 1
+# 
 # === In-order Traversal of AVL Tree (with balance): ===
 # Inorder left: elephant
 # Inorder left: cow
@@ -400,8 +421,8 @@ if __name__ == "__main__":
 # monkey (Balance: 1)
 # Inorder right: monkey
 # Performing spell check. ['elephant', 'big', 'than', 'monkey', 'while', 'limur', 'smaller', 'than', 'caw']
-# Misspelled words are:  {'limur', 'smaller', 'big', 'caw', 'while', 'than'}
-#
+# Misspelled words are:  {'caw', 'than', 'big', 'smaller', 'limur', 'while'}
+# 
 # === Misspelled Words Found: ===
 # big
 # caw
@@ -413,28 +434,23 @@ if __name__ == "__main__":
 # Enter 2 to spell-check.
 # Enter 3 to exit.
 # Please select an option:1
-# Please enter a word into the dictionary.lion
-# I am in the insert function.
-# Right subtree lion
-# I am in the insert function.
-# Left subtree lion
-# I am in the insert function.
-# Right subtree lion
-# I am in the insert function.
-# Height is 1
-# Height is 2
-# Left-right rotation
-# Height is 2
+# Please enter a word into the dictionary.leech
+# Root height is 1
+# Height of left subtree is 0
+# Height of right subtree is -1
+# Root height is 2
+# Height of left subtree is 1
+# Height of right subtree is 1
 # Enter 1 to add a new word into dictionary.
 # Enter 2 to spell-check.
 # Enter 3 to exit.
 # Please select an option:2
-# Please enter a word to spell-check.leon
-# Misspelled word =  leon
+# Please enter a word to spell-check.lech
+# Misspelled word =  lech
 # Enter 1 to add a new word into dictionary.
 # Enter 2 to spell-check.
 # Enter 3 to exit.
 # Please select an option:3
 # Goodbye!
-#
+# 
 # Process finished with exit code 0
